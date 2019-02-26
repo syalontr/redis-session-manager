@@ -4,3 +4,4 @@ target/
 .project
 rebel.xml
 .checkstyle
+bin/
