@@ -37,9 +37,9 @@ public class LettuceSessionManager extends RedisSessionManager {
     public static final String DEFAULT_URI = "redis://localhost:6379";
     
     protected final Log log = LogFactory.getLog(getClass());
-    protected final RedisCodec<String, Object> codec = new ContextClassloaderJdkSerializationCodec(getContainerClassLoader());
     
     private final RedisClient client = RedisClient.create();
+    protected RedisCodec<String, Object> codec;
     private String nodes = DEFAULT_URI;
     
     @Override
@@ -47,7 +47,7 @@ public class LettuceSessionManager extends RedisSessionManager {
         if (nodes == null || nodes.trim().length() == 0) {
             throw new IllegalStateException("Manager must specify node string. e.g., nodes=\"redis://node1.com:6379 redis://node2.com:6379\"");
         }
-        
+        this.codec = new ContextClassloaderJdkSerializationCodec(getContainerClassLoader());
         String[] nodes = getNodes().trim().split("\\s+");
         List<RedisURI> uris = new ArrayList<>();
         for (String node : nodes) {
