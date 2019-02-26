@@ -1,10 +1,7 @@
 # Redis Session Manager for Tomcat 8
-
-
 Tomcat 8 / Java 8 session manager to store sessions in Redis.
 
 ## Goals
-
 * Support for Lettuce and Redisson redis clients
 * JDK serialization
 * Session save configuration to allow persistence [after a request|when an attribute changes]
@@ -12,13 +9,10 @@ Tomcat 8 / Java 8 session manager to store sessions in Redis.
 
 
 ## Usage
-
 * Decide if you're going to use either Lettuce or Redisson as the redis client.
 * After building, copy `rsm-[redisson|lettuce]-with-dependencies-VERSION.jar` to tomcat/lib
 
 ## Common Configuration
-
-
 ```
 <Manager className="com.crimsonhexagon.rsm.XXX"
 	sessionKeyPrefix="_rsm_"
@@ -44,15 +38,12 @@ Tomcat 8 / Java 8 session manager to store sessions in Redis.
 Note: A session can be persisted immediately to redis in the web application by setting the RedisSession#SAVE_IMMEDIATELY_ATTR) attribute to any value.
 
 ## Lettuce
-
 * Default configuration: (communicates with redis on localhost:6379)
-
 ```
 <Manager className="com.crimsonhexagon.rsm.lettuce.LettuceSessionManager" />
 ```
 
-Multiple nodes can be configured with the `nodes` parameter:
-
+Multiple nodes can be configured with the `nodes` parameter (this includes AWS Elasticache config):
 ```
 <Manager 
   className="com.crimsonhexagon.rsm.lettuce.LettuceSessionManager"
@@ -63,16 +54,12 @@ Multiple nodes can be configured with the `nodes` parameter:
 See https://github.com/lettuce-io/lettuce-core/wiki/Redis-URI-and-connection-details for more information on 
 URI format and specifying timeouts, etc.
 
-
 ## Redisson
-
 * Default configuration: (communicates with redis on localhost:6379)
-
 ```
 <Manager className="com.crimsonhexagon.rsm.redisson.SingleServerSessionManager" />
 ```
 * Full configuration (showing default values):
-
 ```
 <Manager className="com.crimsonhexagon.rsm.redisson.SingleServerSessionManager"
 	endpoint="redis://localhost:6379"
@@ -88,10 +75,8 @@ URI format and specifying timeouts, etc.
 ```
 * _endpoint_: hostname:port of the redis server. Must be a primary endpoint (read/write) and not a read replicate (read-only).
 
-### AWS ElastiCache usage
-
+### Redisson AWS ElastiCache usage
 Version 2.0.0 added additional support for ElastiCache Replication Groups. Applicable configuration:
-
 ```
 <Manager className="com.crimsonhexagon.rsm.redisson.ElasticacheSessionManager"
 	nodes="redis://node1.cache.amazonaws.com:6379 redis://node2.cache.amazonaws.com:6379 ..."
@@ -104,7 +89,6 @@ _nodePollInterval_ is the interval for polling each node in the group to determi
 
 	
 ## Notes on object mutation
-
 * TL;DR: avoid mutation of objects pulled from the session. If you must do this, read on.
 * Changes made directly to an object in the session without mutating the session will not be persisted to redis. E.g. `session.getAttribute("anObject").setFoo("bar")` will not result in the session being marked dirty. _forceSaveAfterRequest_ can be used as a workaround, but this is inefficient. A dirty workaround would be to mark the session as dirty by `session.removeAttribute("nonExistentKey")` 
 * It is possible for an object to be mutated and `session.setAttribute("anObject")` invoked without the session being marked as dirty due to the session object and mutated object being references to the same actual object. _dirtyOnMutation_ will mark the session as dirty whenever `setAttribute()` is invoked. This is generally safe but is disabled by default to avoid unnecessary persists.
